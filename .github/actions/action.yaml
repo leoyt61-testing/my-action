@@ -11,6 +11,6 @@ runs:
       shell: bash
       run: |
           # Parse the pull request number using jq
-          echo "${{env.GITHUB_CONTEXT}}"
+          echo "${{GITHUB_CONTEXT}}"
           pull_request_number=$(echo "${{GITHUB_CONTEXT}}" | jq -r '.event.pull_request.number')
           echo "This is pull request number ${{pull_request_number}}"
