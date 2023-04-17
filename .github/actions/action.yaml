@@ -18,6 +18,9 @@ env:
 runs:
   using: 'composite'
   steps:
+    - name: 'Testing token'
+      shell: bash
+      run: echo "${{env.GITHUB_TOKEN}}"
     - name: 'Install jq'
       shell: bash
       run: sudo apt-get install -y jq
