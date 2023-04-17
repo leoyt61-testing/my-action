@@ -1,5 +1,18 @@
-name: 'My Action'
-description: 'This is a reusable action'
+name: Check Pull Request Commits Authors
+description: Validate pull request commits authors by email domain
+inputs:
+  EMAIL_DOMAIN:
+    description: "Email domain to be checked. For example: email-domain.com"
+    required: true
+  GITHUB_REPOSITORY:
+    description: "Github repository."
+    required: true
+  GITHUB_PULL_REQUEST:
+    description: "Github pull request number."
+    required: true
+  GITHUB_TOKEN:
+    description: "Github token to access the repository infos."
+    required: true
 
 runs:
   using: 'composite'
@@ -11,4 +24,4 @@ runs:
       shell: bash
       run: |
           # Parse the pull request number using jq
-          echo "${{toJson(github)}}"
+          echo "${{inputs.GITHUB_PULL_REQUEST}} and ${{inputs.GITHUB_REPOSITORY}}"
