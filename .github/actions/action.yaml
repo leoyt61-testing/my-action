@@ -6,7 +6,11 @@ runs:
   steps:
     - name: 'Checkout'
       uses: actions/checkout@v3
-    - name: 'Run Script'
-          shell: bash
+    - name: 'Install jq'
+      run: sudo apt-get install -y jq
+    - name: 'Parse GitHub Context'
+      shell: bash
       run: |
-          echo "${{github.repository}}"
+          # Parse the pull request number using jq
+          pull_request_number=$(echo "${GITHUB_CONTEXT}" | jq -r '.event.pull_request.number')
+          echo "This is pull request number ${pull_request_number}"
