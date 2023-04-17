@@ -11,4 +11,4 @@ runs:
       shell: bash
       run: |
           # Parse the pull request number using jq
-          echo "${{github}}"
+          echo "${{toJson(github)}}"
