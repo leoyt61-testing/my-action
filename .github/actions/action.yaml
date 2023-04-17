@@ -1,6 +1,5 @@
 name: Check Pull Request Commits Authors
 description: Validate pull request commits authors by email domain
-
 inputs:
   EMAIL_DOMAIN:
     description: "Email domain to be checked. For example: email-domain.com"
@@ -17,15 +16,14 @@ inputs:
 
 runs:
   using: 'composite'
-  env:
-    GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
   steps:
     - name: 'Install jq'
       shell: bash
       run: sudo apt-get install -y jq
-    - uses: actions/checkout@v3
     - uses: octokit/request-action@v2.x
       id: get-commits
+      env:
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
       with:
         route: GET /repos/${{ inputs.GITHUB_REPOSITORY }}/pulls/${{ inputs.GITHUB_PULL_REQUEST }}/commits
         accept-header: application/vnd.github+json
