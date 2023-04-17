@@ -3,6 +3,7 @@ description: 'This is a reusable action'
 
 runs:
   using: 'composite'
+  runs-on: ubuntu-latest
   steps:
     - name: 'Checkout'
       uses: actions/checkout@v3
