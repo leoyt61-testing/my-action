@@ -13,8 +13,6 @@ inputs:
   GITHUB_TOKEN:
     description: "Github token to access the repository infos."
     required: true
-env:
-  GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
 runs:
   using: 'composite'
   steps:
