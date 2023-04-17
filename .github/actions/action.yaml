@@ -7,6 +7,7 @@ runs:
     - name: 'Checkout'
       uses: actions/checkout@v3
     - name: 'Install jq'
+      shell: bash
       run: sudo apt-get install -y jq
     - name: 'Parse GitHub Context'
       shell: bash
