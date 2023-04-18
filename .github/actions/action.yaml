@@ -7,7 +7,7 @@ inputs:
 outputs:
   failed:
     description: "The result of the validation (success or failure)"
-    value: "${{ steps.check-event.outputs.result || steps.check-pr-commits-authors.outputs.result}}"
+    value: "${{ steps.check-event.outputs.failed || steps.check-pr-commits-authors.outputs.failed}}"
 runs:
   using: 'composite'
   steps:
