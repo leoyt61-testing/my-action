@@ -1,0 +1,51 @@
+name: Check Pull Request Commits Authors
+description: Validate pull request commits authors by email domain
+inputs:
+  EMAIL_DOMAIN:
+    description: "Email domain to be checked. For example: email-domain.com"
+    required: true
+outputs:
+  failed:
+    description: "The result of the validation (success or failure)"
+    value: "${{ steps.check-event.outputs.failed || steps.check-pr-commits-authors.outputs.failed}}"
+runs:
+  using: 'composite'
+  steps:
+    - name: "Fails if it's not a pull request"
+      id: check-event
+      if: ${{ github.event_name != 'pull_request' }}
+      shell: bash
+      run: |
+        "failed=true" >> $GITHUB_OUTPUT
+        exit 0
+    - uses: octokit/request-action@v2.x
+      id: get-commits
+      with:
+        route: GET /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/commits
+    - name: "Checking commits authors email domain"
+      id: check-pr-commits-authors
+      env:
+          COMMITS: ${{ steps.get-commits.outputs.data }}
+      shell: bash
+      run: |
+        required_email_domain="${{ inputs.EMAIL_DOMAIN }}"
+        for COMMIT in $(echo "$COMMITS" | jq -r '.[] | @base64'); do
+            _jq() {
+              echo "${COMMIT}" | base64 --decode | jq -r "${1}"
+            }
+            COMMIT_HASH=$(_jq '.sha')
+            COMMIT_MESSAGE=$(_jq '.commit.message' | sed '/^$/q')
+            COMMIT_AUTHOR=$(_jq '.commit.author.email')
+
+            echo "Cheking commit: $COMMIT_HASH"
+            echo "    Commit message: \"$COMMIT_MESSAGE\""
+            author_email_domain=${COMMIT_AUTHOR#*@}
+            if [ "$author_email_domain" != "$required_email_domain" ]; then
+                echo "    ❌ Invalid Author Email: $COMMIT_AUTHOR. Use a \`$required_email_domain\` domain email."
+                echo "    See the commit here: https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }}/commits/$COMMIT_HASH"
+                echo "failed=true" >> $GITHUB_OUTPUT
+            else
+                echo "    ✅ Valid Author Email: $COMMIT_AUTHOR"
+            fi
+        done
+        exit 0
