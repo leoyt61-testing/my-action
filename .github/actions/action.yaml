@@ -7,13 +7,10 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: 'Print event'
+    - name: 'Fails if it's not a pull request'
+      if: ${{ github.event_name != 'pull_request' }}
       shell: bash
-      run: echo "${{github.event_name}}"
-    - name: 'Skip if not a pull request'
-      if: ${{ github.event_name != 'pul_request' }}
-      shell: bash
-      run: exit 78
+      run: exit 1
     - uses: octokit/request-action@v2.x
       id: get-commits
       with:
