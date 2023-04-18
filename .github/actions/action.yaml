@@ -7,13 +7,10 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: 'Testing token'
-      if: ${{ github.event_name == 'push' }}
+    - name: 'Skip if not a pull request'
+      if: ${{ github.event_name == 'pul_request' }}
       shell: bash
-      run: echo "${{env.GITHUB_TOKEN}}"
-    - name: 'Install jq'
-      shell: bash
-      run: sudo apt-get install -y jq
+      run: exit 78
     - uses: octokit/request-action@v2.x
       id: get-commits
       with:
