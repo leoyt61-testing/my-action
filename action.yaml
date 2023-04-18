@@ -29,6 +29,7 @@ runs:
       shell: bash
       run: |
         required_email_domain="${{ inputs.EMAIL_DOMAIN }}"
+        invalid_commits=0
         for COMMIT in $(echo "$COMMITS" | jq -r '.[] | @base64'); do
             _jq() {
               echo "${COMMIT}" | base64 --decode | jq -r "${1}"
@@ -43,9 +44,12 @@ runs:
             if [ "$author_email_domain" != "$required_email_domain" ]; then
                 echo "    ❌ Invalid Author Email: $COMMIT_AUTHOR. Use a \`$required_email_domain\` domain email."
                 echo "    See the commit here: https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }}/commits/$COMMIT_HASH"
-                echo "failed=true" >> $GITHUB_OUTPUT
+                invalid_commits="$(invalid_commits+1)"
             else
                 echo "    ✅ Valid Author Email: $COMMIT_AUTHOR"
             fi
         done
+        if [ "$invalid_commits" -gt 0 ]; then
+            exit 1
+        fi
         exit 0
