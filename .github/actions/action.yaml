@@ -22,11 +22,11 @@ runs:
           COMMITS: ${{ steps.get-commits.outputs.data }}
       shell: bash
       run: |
-        required_email_domain=${{ inputs.EMAIL_DOMAIN }}
+        required_email_domain="${{ inputs.EMAIL_DOMAIN }}"
         invalid_commits=0
-        for COMMIT in $(echo $COMMITS | jq -r '.[] | @base64'); do
+        for COMMIT in $(echo "$COMMITS" | jq -r '.[] | @base64'); do
             _jq() {
-              echo ${COMMIT} | base64 --decode | jq -r ${1}
+              echo "${COMMIT}" | base64 --decode | jq -r "${1}"
             }
             COMMIT_HASH=$(_jq '.sha')
             COMMIT_MESSAGE=$(_jq '.commit.message')
@@ -35,7 +35,7 @@ runs:
             echo "Cheking commit: $COMMIT_HASH"
             echo "    Commit message: \"$COMMIT_MESSAGE\""
             author_email_domain=${COMMIT_AUTHOR#*@}
-            if [ $author_email_domain != $required_email_domain ]; then
+            if [ "$author_email_domain" != "$required_email_domain" ]; then
                 echo "    ❌ Invalid Author Email: $COMMIT_AUTHOR. Use a \`$required_email_domain\` domain email."
                 echo "    See the commit here: https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }}/commits/$COMMIT_HASH"
                 invalid_commits=$((invalid_commits+1))
