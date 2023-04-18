@@ -7,11 +7,12 @@ inputs:
 outputs:
   result:
     description: "The result of the validation (success or failure)"
-    value: ""
+    value: "${{ steps.check-event.outputs.result || steps.check-pr-commits-authors.outputs.result}}"
 runs:
   using: 'composite'
   steps:
     - name: "Fails if it's not a pull request"
+      id: check-event
       if: ${{ github.event_name != 'pull_request' }}
       shell: bash
       run: |
@@ -22,6 +23,7 @@ runs:
       with:
         route: GET /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/commits
     - name: "Checking commits authors email domain"
+      id: check-pr-commits-authors
       env:
           COMMITS: ${{ steps.get-commits.outputs.data }}
       shell: bash
