@@ -4,28 +4,16 @@ inputs:
   EMAIL_DOMAIN:
     description: "Email domain to be checked. For example: email-domain.com"
     required: true
-  GITHUB_REPOSITORY:
-    description: "Github repository."
-    required: true
-  GITHUB_PULL_REQUEST:
-    description: "Github pull request number."
-    required: true
-  GITHUB_TOKEN:
-    description: "Github token to access the repository infos."
-    required: true
 runs:
   using: 'composite'
   steps:
-    - name: 'Testing token'
-      shell: bash
-      run: echo "${{github.repository}}"
     - name: 'Install jq'
       shell: bash
       run: sudo apt-get install -y jq
     - uses: octokit/request-action@v2.x
       id: get-commits
       with:
-        route: GET /repos/${{ inputs.GITHUB_REPOSITORY }}/pulls/${{ inputs.GITHUB_PULL_REQUEST }}/commits
+        route: GET /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/commits
     - name: "Checking commits authors email domain"
       env:
           COMMITS: ${{ steps.get-commits.outputs.data }}
@@ -46,7 +34,7 @@ runs:
             author_email_domain=${COMMIT_AUTHOR#*@}
             if [ $author_email_domain != $required_email_domain ]; then
                 echo "    ❌ Invalid Author Email: $COMMIT_AUTHOR. Use a \`$required_email_domain\` domain email."
-                echo "    See the commit here: https://github.com/${{ inputs.GITHUB_REPOSITORY }}/pull/${{ inputs.GITHUB_PULL_REQUEST }}/commits/$COMMIT_HASH"
+                echo "    See the commit here: https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }}/commits/$COMMIT_HASH"
                 invalid_commits=$((invalid_commits+1))
             else
                 echo "    ✅ Valid Author Email: $COMMIT_AUTHOR"
