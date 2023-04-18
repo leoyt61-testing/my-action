@@ -27,7 +27,7 @@ runs:
               echo "${COMMIT}" | base64 --decode | jq -r "${1}"
             }
             COMMIT_HASH=$(_jq '.sha')
-            COMMIT_MESSAGE=$(_jq '.commit.message')
+            COMMIT_MESSAGE=$(_jq '.commit.message' | sed '/^$/q')
             COMMIT_AUTHOR=$(_jq '.commit.author.email')
 
             echo "Cheking commit: $COMMIT_HASH"
