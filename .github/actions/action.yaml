@@ -4,13 +4,19 @@ inputs:
   EMAIL_DOMAIN:
     description: "Email domain to be checked. For example: email-domain.com"
     required: true
+outputs:
+  result:
+    description: "The result of the validation (success or failure)"
+    value: ""
 runs:
   using: 'composite'
   steps:
     - name: "Fails if it's not a pull request"
       if: ${{ github.event_name != 'pull_request' }}
       shell: bash
-      run: exit 1
+      run: |
+        "result=failure" >> $GITHUB_OUTPUT
+        exit 0
     - uses: octokit/request-action@v2.x
       id: get-commits
       with:
@@ -21,7 +27,7 @@ runs:
       shell: bash
       run: |
         required_email_domain="${{ inputs.EMAIL_DOMAIN }}"
-        invalid_commits=0
+        "result=success" >> $GITHUB_OUTPUT
         for COMMIT in $(echo "$COMMITS" | jq -r '.[] | @base64'); do
             _jq() {
               echo "${COMMIT}" | base64 --decode | jq -r "${1}"
@@ -36,11 +42,9 @@ runs:
             if [ "$author_email_domain" != "$required_email_domain" ]; then
                 echo "    ❌ Invalid Author Email: $COMMIT_AUTHOR. Use a \`$required_email_domain\` domain email."
                 echo "    See the commit here: https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }}/commits/$COMMIT_HASH"
-                invalid_commits=$((invalid_commits+1))
+                "result=failure" >> $GITHUB_OUTPUT
             else
                 echo "    ✅ Valid Author Email: $COMMIT_AUTHOR"
             fi
         done
-        if [ $invalid_commits -gt 0 ]; then
-            exit 1
-        fi
+        exit 0
