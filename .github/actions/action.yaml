@@ -18,7 +18,7 @@ runs:
   steps:
     - name: 'Testing token'
       shell: bash
-      run: echo "${{env.GITHUB_TOKEN}}"
+      run: echo "${{toJson(github.context)}}"
     - name: 'Install jq'
       shell: bash
       run: sudo apt-get install -y jq
