@@ -4,10 +4,9 @@ inputs:
   EMAIL_PATTERN:
     description: "Email regex pattern to be checked."
     required: true
-outputs:
-  failed:
-    description: "The result of the validation (success or failure)"
-    value: "${{ steps.check-event.outputs.failed || steps.check-pr-commits-authors.outputs.failed}}"
+  IGNORED_EMAIL_PATTERN:
+    descriptionL: "Emails patterns to be ignoring when checking."
+    required: false
 runs:
   using: 'composite'
   steps:
@@ -16,8 +15,7 @@ runs:
       if: ${{ github.event_name != 'pull_request' }}
       shell: bash
       run: |
-        "failed=true" >> $GITHUB_OUTPUT
-        exit 0
+        exit 1
     - uses: octokit/request-action@v2.x
       id: get-commits
       with:
@@ -29,6 +27,7 @@ runs:
       shell: bash
       run: |
         required_email_pattern="${{ inputs.EMAIL_PATTERN }}"
+        ignored_email_pattern="${{ inputs.IGNORED_EMAIL_PATTERN }}"
         has_invalid_commits=false
         for COMMIT in $(echo "$COMMITS" | jq -r '.[] | @base64'); do
             _jq() {
@@ -40,7 +39,9 @@ runs:
 
             echo "Cheking commit: $COMMIT_HASH"
             echo "    Commit message: \"$COMMIT_MESSAGE\""
-            if echo "$COMMIT_AUTHOR" | grep -Eqv "$required_email_pattern"; then
+            if [ -n "$ignored_email_pattern" ] && echo "$COMMIT_AUTHOR" | grep -Eq "$ignored_email_pattern"; then
+                echo "    ⚠️ Skipping Author Email: $COMMIT_AUTHOR. Ignored email pattern:\`$required_email_pattern\`"
+            elif echo "$COMMIT_AUTHOR" | grep -Eqv "$required_email_pattern"; then
                 echo "    ❌ Invalid Author Email: $COMMIT_AUTHOR. Use a \`$required_email_pattern\` pattern email."
                 echo "    See the commit here: https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }}/commits/$COMMIT_HASH"
                 has_invalid_commits=true
