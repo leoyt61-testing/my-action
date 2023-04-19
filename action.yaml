@@ -40,7 +40,7 @@ runs:
             echo "Cheking commit: $COMMIT_HASH"
             echo "    Commit message: \"$COMMIT_MESSAGE\""
             if [ -n "$ignored_email_pattern" ] && echo "$COMMIT_AUTHOR" | grep -Eq "$ignored_email_pattern"; then
-                echo "    ⚠️ Skipping Author Email: $COMMIT_AUTHOR. Ignored email pattern:\`$required_email_pattern\`"
+                echo "    ⚠️ Skipping Author Email: $COMMIT_AUTHOR. Ignored email pattern:\`$ignored_email_pattern\`"
             elif echo "$COMMIT_AUTHOR" | grep -Eqv "$required_email_pattern"; then
                 echo "    ❌ Invalid Author Email: $COMMIT_AUTHOR. Use a \`$required_email_pattern\` pattern email."
                 echo "    See the commit here: https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }}/commits/$COMMIT_HASH"
