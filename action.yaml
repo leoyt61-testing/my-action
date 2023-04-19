@@ -41,7 +41,7 @@ runs:
             else
                 echo "    ✅ Valid Author Email: $COMMIT_AUTHOR"
             fi
-        done < <(echo "$COMMITS" | jq -r '.[] | "\(.sha) \(.commit.message | @sh) \(.commit.author.email)"')
+        done < <(echo "$COMMITS" | jq -r '.[] | "\(.sha) \(.commit.message) \(.commit.author.email)"')
         if [ "$has_invalid_commits" = true ]; then
             exit 1
         fi
