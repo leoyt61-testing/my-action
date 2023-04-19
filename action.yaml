@@ -1,8 +1,8 @@
 name: Check Pull Request Commits Authors
 description: Validate pull request commits authors by email domain
 inputs:
-  EMAIL_DOMAIN:
-    description: "Email domain to be checked. For example: email-domain.com"
+  EMAIL_PATTERN:
+    description: "Email regex pattern to be checked."
     required: true
 outputs:
   failed:
@@ -28,8 +28,8 @@ runs:
           COMMITS: ${{ steps.get-commits.outputs.data }}
       shell: bash
       run: |
-        required_email_domain="${{ inputs.EMAIL_DOMAIN }}"
-        invalid_commits=0
+        required_email_pattern="${{ inputs.EMAIL_PATTERN }}"
+        has_invalid_commits=false
         for COMMIT in $(echo "$COMMITS" | jq -r '.[] | @base64'); do
             _jq() {
               echo "${COMMIT}" | base64 --decode | jq -r "${1}"
@@ -41,15 +41,15 @@ runs:
             echo "Cheking commit: $COMMIT_HASH"
             echo "    Commit message: \"$COMMIT_MESSAGE\""
             author_email_domain=${COMMIT_AUTHOR#*@}
-            if [ "$author_email_domain" != "$required_email_domain" ]; then
+            if echo "$author_email_domain" | grep -Eq "$required_email_pattern" ; then
                 echo "    ❌ Invalid Author Email: $COMMIT_AUTHOR. Use a \`$required_email_domain\` domain email."
                 echo "    See the commit here: https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }}/commits/$COMMIT_HASH"
-                invalid_commits="$(invalid_commits+1)"
+                has_invalid_commits=true
             else
                 echo "    ✅ Valid Author Email: $COMMIT_AUTHOR"
             fi
         done
-        if [ "$invalid_commits" -gt 0 ]; then
+        if [ "$has_invalid_commits" = true ]; then
             exit 1
         fi
         exit 0
