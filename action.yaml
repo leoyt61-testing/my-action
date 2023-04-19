@@ -10,18 +10,21 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: "Fails if it's not a pull request"
+    - name: "Pass if it's not a pull request"
       id: check-event
-      if: ${{ github.event_name != 'pull_request' }}
+      if: ${{ !startsWith(github.event_name, 'pull_request') }}
       shell: bash
       run: |
-        exit 1
+        echo "☑️ Skipping because it's not a pull request related event. Current event: '${{ github.event_name }}'"
+        echo "pass=true" >> $GITHUB_OUTPUT
     - uses: octokit/request-action@v2.x
       id: get-commits
+      if: ${{ steps.check-event.outputs.pass != 'true' }}
       with:
         route: GET /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/commits
     - name: "Checking commits authors email domain"
       id: check-pr-commits-authors
+      if: ${{ steps.check-event.outputs.pass != 'true' }}
       env:
           COMMITS: ${{ steps.get-commits.outputs.data }}
       shell: bash
