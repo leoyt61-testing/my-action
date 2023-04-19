@@ -41,7 +41,7 @@ runs:
             echo "Cheking commit: $COMMIT_HASH"
             echo "    Commit message: \"$COMMIT_MESSAGE\""
             author_email_domain=${COMMIT_AUTHOR#*@}
-            if echo "$author_email_domain" | grep -Eq "$required_email_pattern"; then
+            if echo "$author_email_domain" | grep -Eqv "$required_email_pattern"; then
                 echo "    ❌ Invalid Author Email: $COMMIT_AUTHOR. Use a \`$required_email_domain\` domain email."
                 echo "    See the commit here: https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }}/commits/$COMMIT_HASH"
                 has_invalid_commits=true
