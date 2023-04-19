@@ -30,14 +30,7 @@ runs:
       run: |
         required_email_pattern="${{ inputs.EMAIL_PATTERN }}"
         has_invalid_commits=false
-        for COMMIT in $(echo "$COMMITS" | jq -r '.[] | @base64'); do
-            _jq() {
-              echo "${COMMIT}" | base64 --decode | jq -r "${1}"
-            }
-            COMMIT_HASH=$(_jq '.sha')
-            COMMIT_MESSAGE=$(_jq '.commit.message' | sed '/^$/q')
-            COMMIT_AUTHOR=$(_jq '.commit.author.email')
-
+        while read -r COMMIT_HASH COMMIT_MESSAGE COMMIT_AUTHOR; do
             echo "Cheking commit: $COMMIT_HASH"
             echo "    Commit message: \"$COMMIT_MESSAGE\""
             author_email_domain=${COMMIT_AUTHOR#*@}
@@ -48,7 +41,7 @@ runs:
             else
                 echo "    ✅ Valid Author Email: $COMMIT_AUTHOR"
             fi
-        done
+        done < <(echo "$COMMITS" | jq -r '.[] | "\(.sha) \(.commit.message | @sh) \(.commit.author.email)"')
         if [ "$has_invalid_commits" = true ]; then
             exit 1
         fi
